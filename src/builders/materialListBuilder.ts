@@ -7,6 +7,12 @@
 
 import type { Estimate, MaterialListOptions, MaterialListRow } from '../models/estimate';
 
+/** Checks if item code is a material/price list code (not a work operation) */
+function isMaterialCode(code: string): boolean {
+  if (!code) return false;
+  return /^(ФСБЦ|ФССЦ|ССЦ|ТСЦ|ТЦ_)/i.test(code.trim());
+}
+
 export interface MaterialListResult {
   rows: MaterialListRow[];
   totalMaterials: number;
@@ -47,6 +53,7 @@ export function buildMaterialList(
 
   for (const section of estimate.sections) {
     for (const item of section.items) {
+      // Nested materials (from work item's material list)
       for (const mat of item.materials) {
         allMaterials.push({
           code: mat.code,
@@ -58,6 +65,22 @@ export function buildMaterialList(
           total: mat.priceTotal > 0 ? mat.priceTotal :
                  (mat.priceBase * (mat.quantityTotal > 0 ? mat.quantityTotal : mat.quantityPerUnit * item.quantity)),
           type: mat.type,
+          sourcePosition: item.positionNumber,
+          sectionName: section.name,
+        });
+      }
+
+      // Standalone material items (ФСБЦ, ТЦ_, ФССЦ, ССЦ, ТСЦ codes — priced materials)
+      if (isMaterialCode(item.code)) {
+        allMaterials.push({
+          code: item.code,
+          name: item.name,
+          unit: item.unit,
+          quantity: item.quantity,
+          price: item.directCostUnit > 0 ? item.directCostUnit :
+                 (item.quantity > 0 ? item.directCostTotal / item.quantity : 0),
+          total: item.directCostTotal,
+          type: 'basic',
           sourcePosition: item.positionNumber,
           sectionName: section.name,
         });

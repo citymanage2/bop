@@ -14,6 +14,7 @@ import {
   isMachineCode,
   isSectionHeader,
   isTotalRow,
+  isPositionTotal,
   isCoefficientRow,
   isOverheadRow,
   isProfitRow,
@@ -75,7 +76,10 @@ function getCellNumber(row: Row, col: number): number {
  */
 export function classifyRow(row: Row, mapping: ColumnMapping, rowNumber: number): ClassifiedRow {
   const posText = getCellText(row, mapping.posNumber);
-  const code = getCellText(row, mapping.code);
+  // Code field may contain embedded filenames from linked cells (multi-line values)
+  // Strip everything after the first newline
+  const rawCode = getCellText(row, mapping.code);
+  const code = rawCode.includes('\n') ? rawCode.split('\n')[0].trim() : rawCode;
   const name = getCellText(row, mapping.name);
   const unit = getCellText(row, mapping.unit);
 
@@ -86,6 +90,14 @@ export function classifyRow(row: Row, mapping: ColumnMapping, rowNumber: number)
     const qTotal = getCellNumber(row, mapping.quantityTotal);
     if (qTotal !== 0) quantity = qTotal;
   }
+
+  // Detect merged sub-header rows: when a row is a single merged cell spanning all columns,
+  // every column returns the same text. This happens with floor markers like "1 Этаж Полы..."
+  // Also check code === name (posText may differ if column 1 is not in the same merge range)
+  const isMergedRow = !!(
+    (posText && code && name && posText === code && code === name) ||
+    (code && name && unit && code === name && name === unit && code.length > 10)
+  );
 
   const posNumber = posText ? parseInt(posText, 10) : null;
 
@@ -104,7 +116,9 @@ export function classifyRow(row: Row, mapping: ColumnMapping, rowNumber: number)
     machineLaborHours: getCellNumber(row, mapping.machineLaborHours),
   };
 
-  const rowType = detectRowType(posNumber, code, name, unit, quantity);
+  const rowType = isMergedRow
+    ? detectMergedRowType(name)
+    : detectRowType(posNumber, code, name, unit, quantity);
 
   return {
     rowType,
@@ -116,6 +130,20 @@ export function classifyRow(row: Row, mapping: ColumnMapping, rowNumber: number)
     quantity,
     values,
   };
+}
+
+/**
+ * Определяет тип для merged row (одна ячейка, растянутая на все колонки)
+ * Такие строки обычно являются подзаголовками разделов/этажей/помещений
+ */
+function detectMergedRowType(text: string): RowType {
+  if (!text) return 'empty';
+  if (isSectionHeader(text)) return 'section_header';
+  if (isTotalRow(text)) return 'total';
+  if (isOverheadRow(text)) return 'overhead';
+  if (isProfitRow(text)) return 'profit';
+  // Floor markers, sub-headers like "1 Этаж Полы..." — treat as continuation (skip)
+  return 'continuation';
 }
 
 /**
@@ -138,7 +166,12 @@ function detectRowType(
     return 'section_header';
   }
 
-  // Строка итогов
+  // Итог по позиции ("Всего по позиции") — позиционный подитог
+  if (isPositionTotal(name)) {
+    return 'subtotal';
+  }
+
+  // Строка итогов (по разделу / по смете)
   if (isTotalRow(name)) {
     return 'total';
   }

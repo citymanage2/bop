@@ -38,7 +38,7 @@ export function isRascenkaCode(code: string): boolean {
   const trimmed = code.trim();
   // Основные форматы: ТЕР, ФЕР, ГЭСН + суффиксы р/м/п/мр и т.д.
   // Примеры: ГЭСНр57-01-003-02, ТЕР01-001-001, ФЕРм11-01-010-01, ГЭСН08-02-001-01
-  return /^(ТЕР|ФЕР|ТСН|ГЭСН|ОЕР|ССЦ|ФССЦ|ТСЦ|ЕР|ОЕРр|ОЕРм|ОЕРп)[а-яА-Яa-zA-Z]*\d{2}-\d{2}-\d{3}/.test(trimmed);
+  return /^(ТЕР|ФЕР|ТСН|ГЭСН|ОЕР|ССЦ|ФССЦ|ФСБЦ|ТСЦ|ЕР|ОЕРр|ОЕРм|ОЕРп)[а-яА-Яa-zA-Z]*\d{2}-\d{2}-\d{3}/.test(trimmed);
 }
 
 /** Проверяет, является ли строка кодом ресурса (материала/механизма) */
@@ -66,13 +66,19 @@ export function extractSectionNumber(text: string): number {
   return match ? parseInt(match[1], 10) : 0;
 }
 
-/** Проверяет строку итогов */
+/** Проверяет строку итогов (секции/сметы, НЕ позиции) */
 export function isTotalRow(text: string): boolean {
   if (!text) return false;
   const t = text.trim();
   return /^Итого\s+(по\s+разделу|прямые|по\s+смете|direct)/i.test(t)
-    || /^Всего\s+по\s+(позиции|разделу|смете)/i.test(t)
+    || /^Всего\s+по\s+(разделу|смете)/i.test(t)
     || /^ФОТ$/i.test(t);
+}
+
+/** Проверяет итог по позиции ("Всего по позиции") */
+export function isPositionTotal(text: string): boolean {
+  if (!text) return false;
+  return /^Всего\s+по\s+позиции/i.test(text.trim());
 }
 
 /** Проверяет строку коэффициента */

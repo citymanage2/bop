@@ -111,11 +111,19 @@ function extractMetadata(worksheet: ExcelJS.Worksheet, headerRow: number): Estim
   // Сканируем строки выше таблицы
   for (let rowIdx = 1; rowIdx < headerRow; rowIdx++) {
     const row = worksheet.getRow(rowIdx);
-    let rowText = '';
+    // Дедуплицируем текст из merged cells (одно и то же значение повторяется)
+    const seenTexts = new Set<string>();
+    const uniqueParts: string[] = [];
     row.eachCell((cell) => {
-      if (cell.value) rowText += ' ' + String(cell.value);
+      if (cell.value) {
+        const text = String(cell.value).trim();
+        if (text && !seenTexts.has(text)) {
+          seenTexts.add(text);
+          uniqueParts.push(text);
+        }
+      }
     });
-    rowText = rowText.trim();
+    const rowText = uniqueParts.join(' ').trim();
 
     if (!rowText) continue;
 
@@ -223,17 +231,31 @@ function buildSections(rows: ClassifiedRow[], warnings: string[]): Section[] {
         break;
       }
 
-      case 'total':
-      case 'subtotal':
-      case 'overhead':
-      case 'profit': {
-        // Завершаем текущий item перед итогами
+      case 'subtotal': {
+        // "Всего по позиции" — assign full total (incl. overhead+profit) to current item
+        if (currentItem && row.values.totalCostTotal > 0) {
+          // If directCostTotal wasn't set by "Итого прямые затраты", use this
+          if (currentItem.directCostTotal === 0) {
+            currentItem.directCostTotal = row.values.totalCostTotal;
+          }
+        }
+        // Push item after its subtotal
         if (currentItem && currentSection) {
           currentSection.items.push(currentItem);
           currentItem = null;
         }
-        // Итоги записываем в данные раздела
-        if (currentSection && row.rowType === 'total') {
+        break;
+      }
+
+      case 'total': {
+        if (currentItem) {
+          // Position-level total (e.g. "Итого прямые затраты" within a position)
+          // Capture direct cost but don't push the item — wait for "Всего по позиции"
+          if (row.values.totalCostTotal > 0 && currentItem.directCostTotal === 0) {
+            currentItem.directCostTotal = row.values.totalCostTotal;
+          }
+        } else if (currentSection) {
+          // Section-level total (no current item)
           currentSection.sectionTotal = {
             directCost: row.values.totalCostTotal,
             laborCost: row.values.totalCostLabor,
@@ -241,6 +263,16 @@ function buildSections(rows: ClassifiedRow[], warnings: string[]): Section[] {
             materialCost: row.values.totalCostMaterial,
             total: row.values.totalCostTotal,
           };
+        }
+        break;
+      }
+
+      case 'overhead':
+      case 'profit': {
+        // If currentItem exists, these are position-level — don't push item
+        if (!currentItem && currentSection) {
+          // Section-level overhead/profit — push pending item if any
+          // (shouldn't normally happen since item is pushed by subtotal)
         }
         break;
       }

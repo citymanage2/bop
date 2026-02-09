@@ -43,7 +43,7 @@ export function detectColumnMapping(worksheet: Worksheet): ColumnMapping | null 
   // Стратегия 1: ищем "числовую" строку (1 | 2 | 3 | ... | N) — она всегда идёт сразу после заголовка
   const numberedRow = findNumberedRow(worksheet, maxSearchRow);
   if (numberedRow) {
-    return buildMappingFromNumberedRow(worksheet, numberedRow.rowIdx, numberedRow.totalColumns);
+    return buildMappingFromNumberedRow(worksheet, numberedRow.rowIdx, numberedRow.logicalColumns, numberedRow.logicalToPhysical);
   }
 
   // Стратегия 2: ищем строку с характерными заголовками (№ п/п, Обоснование, Наименование)
@@ -72,34 +72,48 @@ export function detectColumnMapping(worksheet: Worksheet): ColumnMapping | null 
 
 /**
  * Ищет строку-нумератор колонок: 1 | 2 | 3 | ... | N
- * Возвращает номер строки и количество колонок
+ * Учитывает merged cells: значения могут повторяться (напр. 1,2,3,3,3,3,3,4,5,6,7,8,9,10,11,12)
+ * Возвращает номер строки, количество логических колонок и маппинг логический→физический номер колонки
  */
-function findNumberedRow(worksheet: Worksheet, maxRow: number): { rowIdx: number; totalColumns: number } | null {
+function findNumberedRow(worksheet: Worksheet, maxRow: number): {
+  rowIdx: number;
+  logicalColumns: number;
+  logicalToPhysical: Map<number, number>;  // logical col number → first physical col number
+} | null {
   for (let rowIdx = 1; rowIdx <= maxRow; rowIdx++) {
     const row = worksheet.getRow(rowIdx);
-    const values: number[] = [];
-    let hasSequentialNumbers = true;
+    const colValues: { col: number; val: number }[] = [];
+    let allNumbers = true;
 
     row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
       const val = cell.value;
       if (typeof val === 'number') {
-        values.push(val);
+        colValues.push({ col: colNumber, val });
       } else if (typeof val === 'string') {
         const n = parseInt(val.trim(), 10);
-        if (!isNaN(n)) values.push(n);
-        else hasSequentialNumbers = false;
+        if (!isNaN(n) && val.trim() === String(n)) colValues.push({ col: colNumber, val: n });
+        else allNumbers = false;
       } else {
-        hasSequentialNumbers = false;
+        allNumbers = false;
       }
     });
 
-    // Должно быть минимум 8 последовательных чисел начиная с 1
-    if (!hasSequentialNumbers || values.length < 8) continue;
+    if (!allNumbers || colValues.length < 8) continue;
 
-    // Проверяем, что это действительно 1,2,3,...,N
-    const isSequential = values.every((v, i) => v === i + 1);
+    // Дедуплицируем: берём ПЕРВУЮ физическую колонку для каждого логического номера
+    const logicalToPhysical = new Map<number, number>();
+    for (const { col, val } of colValues) {
+      if (!logicalToPhysical.has(val)) {
+        logicalToPhysical.set(val, col);
+      }
+    }
+
+    // Проверяем, что уникальные значения — последовательные от 1 до N
+    const uniqueVals = [...logicalToPhysical.keys()].sort((a, b) => a - b);
+    if (uniqueVals.length < 8) continue;
+    const isSequential = uniqueVals.every((v, i) => v === i + 1);
     if (isSequential) {
-      return { rowIdx, totalColumns: values.length };
+      return { rowIdx, logicalColumns: uniqueVals.length, logicalToPhysical };
     }
   }
   return null;
@@ -107,88 +121,63 @@ function findNumberedRow(worksheet: Worksheet, maxRow: number): { rowIdx: number
 
 /**
  * Строит маппинг на основе числовой строки заголовка
- * Сканирует строки выше для текстовых заголовков
+ * Использует logicalToPhysical для конвертации логических номеров колонок в физические
  */
-function buildMappingFromNumberedRow(worksheet: Worksheet, numberedRowIdx: number, totalColumns: number): ColumnMapping {
-  // Собираем текст заголовков из строк выше числовой строки (обычно 2-3 строки)
-  const headerTexts = new Map<number, string>();
-  for (let r = Math.max(1, numberedRowIdx - 4); r < numberedRowIdx; r++) {
-    const row = worksheet.getRow(r);
-    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-      if (cell.value) {
-        const text = String(cell.value).trim().toLowerCase();
-        if (text && text !== '№') {
-          const existing = headerTexts.get(colNumber) || '';
-          headerTexts.set(colNumber, (existing + ' ' + text).trim());
-        }
-      }
-    });
-  }
-
-  // Определяем основные колонки из заголовков
-  let posNumberCol = 1;
-  let codeCol = 2;
-  let nameCol = 3;
-  let unitCol = 4;
-
-  for (const [col, text] of headerTexts.entries()) {
-    if (text.includes('п/п') || text === '№') posNumberCol = col;
-    else if (text.includes('обоснование') || text.includes('шифр')) codeCol = col;
-    else if (text.includes('наименование')) nameCol = col;
-    else if (text.includes('единица') && text.includes('измер')) unitCol = col;
-  }
+function buildMappingFromNumberedRow(
+  worksheet: Worksheet,
+  numberedRowIdx: number,
+  logicalColumns: number,
+  logicalToPhysical: Map<number, number>,
+): ColumnMapping {
+  // Хелпер: логический номер → физический номер колонки
+  const phys = (logical: number): number => logicalToPhysical.get(logical) ?? -1;
 
   const mapping = createEmptyMapping(numberedRowIdx);
-  mapping.posNumber = posNumberCol;
-  mapping.code = codeCol;
-  mapping.name = nameCol;
-  mapping.unit = unitCol;
 
-  if (totalColumns === 12) {
-    // Ресурсно-индексный метод (12 колонок)
-    // Кол 1: № п/п
-    // Кол 2: Обоснование
-    // Кол 3: Наименование работ и затрат
-    // Кол 4: Единица измерения
-    // Кол 5: Количество — на единицу измерения
-    // Кол 6: Количество — коэффициенты
-    // Кол 7: Количество — всего с учетом коэффициентов
-    // Кол 8: Сметная стоимость — на ед. в базисном уровне цен
-    // Кол 9: Сметная стоимость — индекс
-    // Кол 10: Сметная стоимость — на ед. в текущем уровне цен
-    // Кол 11: Сметная стоимость — коэффициенты
-    // Кол 12: Сметная стоимость — всего в текущем уровне цен
+  // Логические колонки 1-4 всегда одинаковые
+  mapping.posNumber = phys(1);   // № п/п
+  mapping.code = phys(2);        // Обоснование
+  mapping.name = phys(3);        // Наименование (первая физическая колонка мержа)
+  mapping.unit = phys(4);        // Единица измерения
+
+  if (logicalColumns === 12) {
+    // Ресурсно-индексный метод (12 логических колонок)
+    // Лог 5: Количество — на единицу измерения
+    // Лог 6: Количество — коэффициенты
+    // Лог 7: Количество — всего с учетом коэффициентов
+    // Лог 8: Сметная стоимость — на ед. в базисном уровне цен
+    // Лог 9: Сметная стоимость — индекс
+    // Лог 10: Сметная стоимость — на ед. в текущем уровне цен
+    // Лог 11: Сметная стоимость — коэффициенты
+    // Лог 12: Сметная стоимость — всего в текущем уровне цен
     mapping.format = 'resource-index';
-    mapping.quantity = 5;
-    mapping.quantityTotal = 7;
-    mapping.unitCostTotal = 8;     // базисная стоимость на ед.
-    mapping.unitCostLabor = -1;
-    mapping.unitCostMachine = -1;
-    mapping.unitCostMachineLabor = -1;
-    mapping.unitCostMaterial = -1;
-    mapping.totalCostTotal = 12;   // всего в текущем уровне цен
-    mapping.totalCostLabor = -1;
-    mapping.totalCostMachine = -1;
-    mapping.totalCostMachineLabor = -1;
-    mapping.totalCostMaterial = -1;
-    mapping.laborHours = -1;
-    mapping.machineLaborHours = -1;
-  } else {
+    mapping.quantity = phys(5);
+    mapping.quantityTotal = phys(7);
+    mapping.unitCostTotal = phys(8);
+    mapping.totalCostTotal = phys(12);
+  } else if (logicalColumns >= 17) {
     // Стандартный базисно-индексный метод (17+ колонок)
     mapping.format = 'standard';
-    mapping.quantity = 5;
-    mapping.unitCostTotal = 6;
-    mapping.unitCostLabor = 7;
-    mapping.unitCostMachine = 8;
-    mapping.unitCostMachineLabor = 9;
-    mapping.unitCostMaterial = 10;
-    mapping.totalCostTotal = 11;
-    mapping.totalCostLabor = 12;
-    mapping.totalCostMachine = 13;
-    mapping.totalCostMachineLabor = 14;
-    mapping.totalCostMaterial = 15;
-    mapping.laborHours = 16;
-    mapping.machineLaborHours = 17;
+    mapping.quantity = phys(5);
+    mapping.unitCostTotal = phys(6);
+    mapping.unitCostLabor = phys(7);
+    mapping.unitCostMachine = phys(8);
+    mapping.unitCostMachineLabor = phys(9);
+    mapping.unitCostMaterial = phys(10);
+    mapping.totalCostTotal = phys(11);
+    mapping.totalCostLabor = phys(12);
+    mapping.totalCostMachine = phys(13);
+    mapping.totalCostMachineLabor = phys(14);
+    mapping.totalCostMaterial = phys(15);
+    mapping.laborHours = phys(16);
+    mapping.machineLaborHours = phys(17);
+  } else {
+    // Между 12 и 17 — пытаемся как resource-index
+    mapping.format = 'resource-index';
+    mapping.quantity = phys(5);
+    mapping.quantityTotal = phys(7);
+    mapping.unitCostTotal = phys(8);
+    mapping.totalCostTotal = phys(logicalColumns);
   }
 
   return mapping;

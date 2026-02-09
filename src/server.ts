@@ -51,15 +51,10 @@ if (fs.existsSync(clientDistPath)) {
 // Обработчик ошибок
 app.use(errorHandler);
 
-// Запуск сервера
-app.listen(config.port, () => {
-  console.log(`
-╔══════════════════════════════════════════════════╗
-║  Сметный парсер — сервис ВОР и материалов       ║
-║  Сервер запущен: http://localhost:${config.port}          ║
-║  Окружение: ${config.nodeEnv.padEnd(37)}║
-╚══════════════════════════════════════════════════╝
-  `);
+// Запуск сервера — bind на 0.0.0.0 обязателен для Render
+const HOST = '0.0.0.0';
+app.listen(config.port, HOST, () => {
+  console.log(`Server started on ${HOST}:${config.port} [${config.nodeEnv}]`);
 });
 
 export default app;

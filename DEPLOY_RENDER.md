@@ -29,7 +29,7 @@
 | **Runtime** | Node |
 | **Build Command** | `npm run render:build` |
 | **Start Command** | `npm start` |
-| **Plan** | Standard (или выше) |
+| **Plan** | Free (или Standard для поддержки дисков) |
 
 > **Важно:** Весь код находится в ветке `claude/build-estimate-parser-6wZHx`.
 > Убедитесь, что в поле **Branch** указана эта ветка, или предварительно
@@ -44,7 +44,7 @@
 | `NODE_ENV` | `production` | Да |
 | `ANTHROPIC_API_KEY` | `sk-ant-api03-...` (ваш ключ Anthropic) | Да (для AI-декомпозиции) |
 | `CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Нет (есть значение по умолчанию) |
-| `UPLOAD_DIR` | `/app/uploads` | Нет (по умолчанию `./uploads`) |
+| `UPLOAD_DIR` | `./uploads` | Нет (по умолчанию `./uploads`) |
 | `MAX_FILE_SIZE` | `50mb` | Нет (по умолчанию 50mb) |
 
 > Ключ `ANTHROPIC_API_KEY` получите на https://console.anthropic.com/settings/keys

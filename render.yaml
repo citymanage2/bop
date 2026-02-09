@@ -2,10 +2,11 @@ services:
   - type: web
     name: smeta-parser
     runtime: node
-    plan: standard
+    plan: free
     branch: claude/build-estimate-parser-6wZHx
     buildCommand: npm run render:build
     startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,10 +15,6 @@ services:
       - key: CLAUDE_MODEL
         value: claude-sonnet-4-20250514
       - key: UPLOAD_DIR
-        value: /app/uploads
+        value: ./uploads
       - key: MAX_FILE_SIZE
         value: 50mb
-    disk:
-      name: uploads
-      mountPath: /app/uploads
-      sizeGB: 1

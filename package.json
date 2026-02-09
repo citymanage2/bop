@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Сервис формирования ВОР и списка материалов из смет ГрандСмета",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc && cp -r src/decomposer/data dist/decomposer/data",

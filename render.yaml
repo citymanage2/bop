@@ -3,6 +3,7 @@ services:
     name: smeta-parser
     runtime: node
     plan: standard
+    branch: claude/build-estimate-parser-6wZHx
     buildCommand: npm run render:build
     startCommand: npm start
     envVars:

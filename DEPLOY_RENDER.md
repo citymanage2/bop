@@ -25,10 +25,15 @@
 | Параметр | Значение |
 |----------|---------|
 | **Name** | `smeta-parser` |
+| **Branch** | `claude/build-estimate-parser-6wZHx` (или `main` после мержа PR) |
 | **Runtime** | Node |
 | **Build Command** | `npm run render:build` |
 | **Start Command** | `npm start` |
 | **Plan** | Standard (или выше) |
+
+> **Важно:** Весь код находится в ветке `claude/build-estimate-parser-6wZHx`.
+> Убедитесь, что в поле **Branch** указана эта ветка, или предварительно
+> смержите PR в `main` через GitHub UI.
 
 ### Шаг 2. Переменные окружения
 

@@ -78,7 +78,14 @@ export function classifyRow(row: Row, mapping: ColumnMapping, rowNumber: number)
   const code = getCellText(row, mapping.code);
   const name = getCellText(row, mapping.name);
   const unit = getCellText(row, mapping.unit);
-  const quantity = getCellNumber(row, mapping.quantity);
+
+  // Для ресурсно-индексного формата: используем quantityTotal если есть,
+  // иначе основное поле quantity
+  let quantity = getCellNumber(row, mapping.quantity);
+  if (mapping.quantityTotal > 0) {
+    const qTotal = getCellNumber(row, mapping.quantityTotal);
+    if (qTotal !== 0) quantity = qTotal;
+  }
 
   const posNumber = posText ? parseInt(posText, 10) : null;
 
@@ -127,7 +134,7 @@ function detectRowType(
   }
 
   // Заголовок раздела
-  if (isSectionHeader(name)) {
+  if (isSectionHeader(name) || isSectionHeader(code)) {
     return 'section_header';
   }
 
@@ -136,13 +143,13 @@ function detectRowType(
     return 'total';
   }
 
-  // Накладные расходы
-  if (isOverheadRow(name)) {
+  // Накладные расходы (название или код типа "Пр/...НР")
+  if (isOverheadRow(name) || (code && /^Пр\//i.test(code) && /НР/i.test(name))) {
     return 'overhead';
   }
 
-  // Сметная прибыль
-  if (isProfitRow(name)) {
+  // Сметная прибыль (название или код типа "Пр/...СП")
+  if (isProfitRow(name) || (code && /^Пр\//i.test(code) && /СП/i.test(name))) {
     return 'profit';
   }
 
@@ -172,11 +179,18 @@ function detectRowType(
   }
 
   // Строка с текстом без кода — продолжение наименования или подитог
-  if (name && !code && !unit) {
-    if (name.toLowerCase().includes('итого')) {
+  if (name && !unit) {
+    const lower = name.toLowerCase();
+    if (lower.includes('итого') || lower.includes('всего по')) {
       return 'subtotal';
     }
-    return 'continuation';
+    // Строка ОТ(ЗТ), Объем=, информационная строка — пропускаем
+    if (/^Объем\s*=/i.test(name) || /^\d+\s*ОТ\s*\(/i.test(name) || /^\d+\s*Этаж/i.test(name)) {
+      return 'continuation';
+    }
+    if (!code) {
+      return 'continuation';
+    }
   }
 
   return 'unknown';

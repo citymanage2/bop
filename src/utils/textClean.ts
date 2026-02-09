@@ -35,7 +35,10 @@ export function parseNumber(value: string | number | null | undefined): number {
 /** Проверяет, является ли строка шифром расценки */
 export function isRascenkaCode(code: string): boolean {
   if (!code) return false;
-  return /^(ТЕР|ФЕР|ТСН|ГЭСН|ОЕР|ТЕРр|ФЕРр|ТЕРм|ФЕРм|ТЕРп|ФЕРп|ССЦ|ФССЦ|ТСЦ)\d{2}-\d{2}-\d{3}/.test(code.trim());
+  const trimmed = code.trim();
+  // Основные форматы: ТЕР, ФЕР, ГЭСН + суффиксы р/м/п/мр и т.д.
+  // Примеры: ГЭСНр57-01-003-02, ТЕР01-001-001, ФЕРм11-01-010-01, ГЭСН08-02-001-01
+  return /^(ТЕР|ФЕР|ТСН|ГЭСН|ОЕР|ССЦ|ФССЦ|ТСЦ|ЕР|ОЕРр|ОЕРм|ОЕРп)[а-яА-Яa-zA-Z]*\d{2}-\d{2}-\d{3}/.test(trimmed);
 }
 
 /** Проверяет, является ли строка кодом ресурса (материала/механизма) */
@@ -54,7 +57,7 @@ export function isMachineCode(code: string): boolean {
 /** Определяет начало нового раздела */
 export function isSectionHeader(text: string): boolean {
   if (!text) return false;
-  return /^Раздел\s+\d+/i.test(text.trim());
+  return /^Раздел\s+\d+/i.test(text.trim()) || /^Раздел\s*\d+\./i.test(text.trim());
 }
 
 /** Извлекает номер раздела из заголовка */
@@ -66,7 +69,10 @@ export function extractSectionNumber(text: string): number {
 /** Проверяет строку итогов */
 export function isTotalRow(text: string): boolean {
   if (!text) return false;
-  return /^Итого\s+(по\s+разделу|прямые|по\s+смете)/i.test(text.trim());
+  const t = text.trim();
+  return /^Итого\s+(по\s+разделу|прямые|по\s+смете|direct)/i.test(t)
+    || /^Всего\s+по\s+(позиции|разделу|смете)/i.test(t)
+    || /^ФОТ$/i.test(t);
 }
 
 /** Проверяет строку коэффициента */
@@ -78,13 +84,15 @@ export function isCoefficientRow(text: string): boolean {
 /** Проверяет строку накладных расходов */
 export function isOverheadRow(text: string): boolean {
   if (!text) return false;
-  return /^Накладные\s+расходы/i.test(text.trim());
+  const t = text.trim();
+  return /^Накладные\s+расходы/i.test(t) || /^НР\s/i.test(t);
 }
 
 /** Проверяет строку сметной прибыли */
 export function isProfitRow(text: string): boolean {
   if (!text) return false;
-  return /^Сметная\s+прибыль/i.test(text.trim());
+  const t = text.trim();
+  return /^Сметная\s+прибыль/i.test(t) || /^СП\s/i.test(t);
 }
 
 /** Форматирует число для отображения */

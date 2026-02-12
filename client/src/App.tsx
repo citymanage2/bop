@@ -4,6 +4,8 @@ import EstimateView from './pages/EstimateView';
 import DecompositionPage from './pages/DecompositionPage';
 import VORPreview from './pages/VORPreview';
 import MaterialsPreview from './pages/MaterialsPreview';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiePolicy from './pages/CookiePolicy';
 
 function App() {
   const location = useLocation();
@@ -37,8 +39,21 @@ function App() {
           <Route path="/estimate/:id/decompose" element={<DecompositionPage />} />
           <Route path="/estimate/:id/vor" element={<VORPreview />} />
           <Route path="/estimate/:id/materials" element={<MaterialsPreview />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
         </Routes>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 mt-12 py-6">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
+          <span>citymanage@yandex.ru</span>
+          <div className="flex gap-4">
+            <Link to="/privacy" className="hover:text-gray-700">Политика конфиденциальности</Link>
+            <Link to="/cookies" className="hover:text-gray-700">Политика cookie</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

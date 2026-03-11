@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEstimate } from '../api/client';
 import EstimateTable from '../components/EstimateTable';
+import { ArrowLeft, Layers, Hash, Banknote, Sigma, SplitSquareVertical, ClipboardList, Package } from 'lucide-react';
 
 export default function EstimateView() {
   const { id } = useParams<{ id: string }>();
@@ -36,10 +37,10 @@ export default function EstimateView() {
 
   if (error || !estimate) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
         <p className="font-medium">Ошибка загрузки сметы</p>
         <p className="text-sm">{error || 'Смета не найдена'}</p>
-        <button onClick={() => navigate('/')} className="mt-2 text-sm underline">
+        <button onClick={() => navigate('/')} className="mt-2 text-sm text-blue-400 hover:text-blue-300 underline">
           Вернуться к загрузке
         </button>
       </div>
@@ -53,46 +54,46 @@ export default function EstimateView() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link to="/" className="text-blue-600 hover:text-blue-800 text-sm">&larr; Назад</Link>
-          </div>
-          <h1 className="text-xl font-bold text-gray-800">{estimate.name || 'Локальный сметный расчёт'}</h1>
+          <Link to="/" className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1 mb-2">
+            <ArrowLeft className="w-3.5 h-3.5" /> Назад
+          </Link>
+          <h1 className="text-xl font-bold text-gray-100">{estimate.name || 'Локальный сметный расчёт'}</h1>
           {estimate.object && (
-            <p className="text-gray-600 text-sm mt-0.5">Объект: {estimate.object}</p>
+            <p className="text-gray-400 text-sm mt-0.5">Объект: {estimate.object}</p>
           )}
         </div>
-        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-mono uppercase">
+        <span className="px-2 py-1 bg-[#2E3033] text-gray-400 text-xs rounded-lg font-mono uppercase border border-[#444]">
           {estimate.sourceFormat}
         </span>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-4 gap-4">
-        <InfoCard label="Разделов" value={estimate.sections.length} />
-        <InfoCard label="Позиций" value={totalItems} />
-        <InfoCard label="Прямые затраты" value={formatCurrency(estimate.totals.directCost)} />
-        <InfoCard label="Всего" value={formatCurrency(estimate.totals.total)} />
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <InfoCard icon={<Layers className="w-4 h-4 text-blue-400" />} label="Разделов" value={estimate.sections.length} />
+        <InfoCard icon={<Hash className="w-4 h-4 text-purple-400" />} label="Позиций" value={totalItems} />
+        <InfoCard icon={<Banknote className="w-4 h-4 text-emerald-400" />} label="Прямые затраты" value={formatCurrency(estimate.totals.directCost)} />
+        <InfoCard icon={<Sigma className="w-4 h-4 text-amber-400" />} label="Всего" value={formatCurrency(estimate.totals.total)} />
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <Link
           to={`/estimate/${id}/decompose`}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-medium flex items-center gap-2 transition-colors"
         >
-          Декомпозиция расценок
+          <SplitSquareVertical className="w-4 h-4" /> Декомпозиция расценок
         </Link>
         <Link
           to={`/estimate/${id}/vor`}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-sm font-medium flex items-center gap-2 transition-colors"
         >
-          Сформировать ВОР
+          <ClipboardList className="w-4 h-4" /> Сформировать ВОР
         </Link>
         <Link
           to={`/estimate/${id}/materials`}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+          className="px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 text-sm font-medium flex items-center gap-2 transition-colors"
         >
-          Список материалов
+          <Package className="w-4 h-4" /> Список материалов
         </Link>
       </div>
 
@@ -102,11 +103,14 @@ export default function EstimateView() {
   );
 }
 
-function InfoCard({ label, value }: { label: string; value: string | number }) {
+function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-lg font-semibold text-gray-800 mt-0.5">{value}</p>
+    <div className="bg-[#1F2023] border border-[#333] rounded-xl px-4 py-3">
+      <div className="flex items-center gap-1.5 mb-1">
+        {icon}
+        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+      </div>
+      <p className="text-lg font-semibold text-gray-100">{value}</p>
     </div>
   );
 }

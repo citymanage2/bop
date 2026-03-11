@@ -26,7 +26,7 @@ export default function WorkDecomposition({ estimate, onDecompose, isDecomposing
         <button
           onClick={() => onDecompose()}
           disabled={isDecomposing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
         >
           {isDecomposing ? 'Декомпозиция...' : 'Декомпозировать все'}
         </button>
@@ -35,10 +35,10 @@ export default function WorkDecomposition({ estimate, onDecompose, isDecomposing
         </span>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0 rounded-xl border border-[#333] overflow-hidden">
         {estimate.sections.map((section: any) => (
           <div key={section.id}>
-            <div className="bg-green-50 px-3 py-2 font-semibold text-sm rounded">
+            <div className="bg-emerald-500/10 px-3 py-2 font-semibold text-sm text-emerald-400">
               {section.name}
             </div>
             {section.items
@@ -48,19 +48,19 @@ export default function WorkDecomposition({ estimate, onDecompose, isDecomposing
                 const isExpanded = expandedItems.has(item.id);
 
                 return (
-                  <div key={item.id} className="border-b">
+                  <div key={item.id} className="border-b border-[#2A2A2D]">
                     <div
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-[#2E3033] cursor-pointer text-sm transition-colors"
                       onClick={() => toggleItem(item.id)}
                     >
-                      <span className="text-xs text-gray-400">{isExpanded ? '\u25BC' : '\u25B6'}</span>
+                      <span className="text-xs text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span>
                       <StatusBadge status={status} />
-                      <span className="font-mono text-xs text-blue-700 w-36 flex-shrink-0">
+                      <span className="font-mono text-xs text-blue-400 w-36 flex-shrink-0">
                         {item.code}
                       </span>
-                      <span className="truncate flex-1">{item.name}</span>
+                      <span className="truncate flex-1 text-gray-200">{item.name}</span>
                       <span className="text-gray-500 text-xs">{item.unit}</span>
-                      <span className="text-gray-700 w-16 text-right">{item.quantity}</span>
+                      <span className="text-gray-300 w-16 text-right">{item.quantity}</span>
                     </div>
 
                     {isExpanded && (
@@ -68,11 +68,11 @@ export default function WorkDecomposition({ estimate, onDecompose, isDecomposing
                         {item.works.length > 0 ? (
                           <div className="space-y-1">
                             {item.works.map((work: any, wi: number) => (
-                              <div key={wi} className="flex items-center gap-2 text-xs bg-gray-50 px-3 py-1.5 rounded">
-                                <span className="text-gray-400 w-4">{wi + 1}.</span>
-                                <span className="flex-1">{work.name}</span>
+                              <div key={wi} className="flex items-center gap-2 text-xs bg-[#2E3033] px-3 py-1.5 rounded-lg">
+                                <span className="text-gray-500 w-4">{wi + 1}.</span>
+                                <span className="flex-1 text-gray-300">{work.name}</span>
                                 <span className="text-gray-500">{work.unit}</span>
-                                <span className="font-medium w-16 text-right">
+                                <span className="font-medium w-16 text-right text-gray-200">
                                   {work.quantity?.toLocaleString('ru-RU', { maximumFractionDigits: 4 })}
                                 </span>
                                 <SourceBadge source={work.source} />
@@ -80,7 +80,7 @@ export default function WorkDecomposition({ estimate, onDecompose, isDecomposing
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-400 italic">
+                          <p className="text-xs text-gray-500 italic">
                             Не декомпозирована. Нажмите «Декомпозировать все» или используйте AI-анализ.
                           </p>
                         )}
@@ -107,10 +107,10 @@ function getDecompStatus(item: any): 'parsed' | 'cache' | 'ai' | 'none' {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    parsed: 'bg-green-100 text-green-700',
-    cache: 'bg-blue-100 text-blue-700',
-    ai: 'bg-yellow-100 text-yellow-700',
-    none: 'bg-red-100 text-red-700',
+    parsed: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    cache: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    ai: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    none: 'bg-red-500/15 text-red-400 border-red-500/30',
   };
   const labels: Record<string, string> = {
     parsed: 'Парсинг',
@@ -120,7 +120,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${styles[status]}`}>
+    <span className={`px-1.5 py-0.5 rounded text-xs font-medium border ${styles[status]}`}>
       {labels[status]}
     </span>
   );
@@ -128,10 +128,10 @@ function StatusBadge({ status }: { status: string }) {
 
 function SourceBadge({ source }: { source: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    parsed: { label: 'парсинг', cls: 'text-green-600' },
-    cache: { label: 'кэш', cls: 'text-blue-600' },
-    ai_decomposed: { label: 'AI', cls: 'text-yellow-600' },
-    manual: { label: 'ручн.', cls: 'text-purple-600' },
+    parsed: { label: 'парсинг', cls: 'text-emerald-400' },
+    cache: { label: 'кэш', cls: 'text-blue-400' },
+    ai_decomposed: { label: 'AI', cls: 'text-amber-400' },
+    manual: { label: 'ручн.', cls: 'text-purple-400' },
   };
   const info = map[source] || { label: source, cls: 'text-gray-500' };
 

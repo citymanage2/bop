@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEstimate, decomposeEstimate } from '../api/client';
 import WorkDecomposition from '../components/WorkDecomposition';
+import { ArrowLeft, SplitSquareVertical, ClipboardList, CheckCircle2 } from 'lucide-react';
 
 export default function DecompositionPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,6 @@ export default function DecompositionPage() {
     try {
       const decompResult = await decomposeEstimate(id);
       setResult(decompResult);
-      // Reload estimate to get updated works
       await loadEstimate(id);
     } catch (err: any) {
       setError(err.message);
@@ -52,37 +52,42 @@ export default function DecompositionPage() {
   }
 
   if (!estimate) {
-    return <div className="text-red-600">Смета не найдена</div>;
+    return <div className="text-red-400">Смета не найдена</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Link to={`/estimate/${id}`} className="text-blue-600 hover:text-blue-800 text-sm">&larr; К смете</Link>
+      <Link to={`/estimate/${id}`} className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+        <ArrowLeft className="w-3.5 h-3.5" /> К смете
+      </Link>
+
+      <div>
+        <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+          <SplitSquareVertical className="w-5 h-5 text-blue-400" />
+          Декомпозиция расценок
+        </h1>
+        <p className="text-gray-400 text-sm mt-1">
+          Разбор составных расценок на отдельные виды работ для формирования ВОР
+        </p>
       </div>
 
-      <h1 className="text-xl font-bold text-gray-800">Декомпозиция расценок</h1>
-      <p className="text-gray-600 text-sm">
-        Разбор составных расценок на отдельные виды работ для формирования ВОР
-      </p>
-
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>
       )}
 
       {result && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-          <p className="font-medium">Декомпозиция завершена</p>
-          <div className="flex gap-4 mt-1 text-xs">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl text-sm">
+          <p className="font-medium flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" /> Декомпозиция завершена
+          </p>
+          <div className="flex gap-4 mt-1 text-xs text-emerald-300/70">
             <span>Всего: {result.totalItems}</span>
             <span>Из кэша: {result.fromCache}</span>
             <span>Из AI: {result.fromAI}</span>
             <span>Из парсинга: {result.fromParsed}</span>
           </div>
           {result.warnings?.length > 0 && (
-            <ul className="mt-2 text-xs list-disc list-inside text-yellow-700">
+            <ul className="mt-2 text-xs list-disc list-inside text-yellow-400">
               {result.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
             </ul>
           )}
@@ -98,9 +103,9 @@ export default function DecompositionPage() {
       <div className="flex gap-3">
         <Link
           to={`/estimate/${id}/vor`}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-sm font-medium flex items-center gap-2 transition-colors"
         >
-          Сформировать ВОР
+          <ClipboardList className="w-4 h-4" /> Сформировать ВОР
         </Link>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEstimate, getVORPreview, generateVOR } from '../api/client';
 import VORTable from '../components/VORTable';
+import { ArrowLeft, Download, ClipboardList } from 'lucide-react';
 
 export default function VORPreview() {
   const { id } = useParams<{ id: string }>();
@@ -11,7 +12,6 @@ export default function VORPreview() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Options
   const [groupBySection, setGroupBySection] = useState(true);
   const [includeSourceCode, setIncludeSourceCode] = useState(true);
   const [mergeIdenticalWorks, setMergeIdenticalWorks] = useState(false);
@@ -58,12 +58,8 @@ export default function VORPreview() {
     setExporting(true);
     try {
       const result = await generateVOR(id, {
-        groupBySection,
-        includeSourceCode,
-        mergeIdenticalWorks,
-        exportFormat: format,
+        groupBySection, includeSourceCode, mergeIdenticalWorks, exportFormat: format,
       });
-      // Download the file
       window.open(result.downloadUrl, '_blank');
     } catch (err: any) {
       setError(err.message);
@@ -82,64 +78,57 @@ export default function VORPreview() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Link to={`/estimate/${id}`} className="text-blue-600 hover:text-blue-800 text-sm">&larr; К смете</Link>
-      </div>
+      <Link to={`/estimate/${id}`} className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+        <ArrowLeft className="w-3.5 h-3.5" /> К смете
+      </Link>
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Ведомость объёмов работ (ВОР)</h1>
-          {estimate && (
-            <p className="text-gray-600 text-sm mt-0.5">{estimate.name}</p>
-          )}
+          <h1 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-emerald-400" />
+            Ведомость объёмов работ (ВОР)
+          </h1>
+          {estimate && <p className="text-gray-400 text-sm mt-0.5">{estimate.name}</p>}
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => handleExport('xlsx')}
-            disabled={exporting}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
-          >
-            Скачать XLSX
+          <button onClick={() => handleExport('xlsx')} disabled={exporting}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2 transition-colors">
+            <Download className="w-4 h-4" /> XLSX
           </button>
-          <button
-            onClick={() => handleExport('docx')}
-            disabled={exporting}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
-          >
-            Скачать DOCX
+          <button onClick={() => handleExport('docx')} disabled={exporting}
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2 transition-colors">
+            <Download className="w-4 h-4" /> DOCX
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>
       )}
 
       {/* Options */}
-      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-        <p className="text-sm font-medium text-gray-700 mb-2">Настройки</p>
+      <div className="bg-[#1F2023] border border-[#333] rounded-xl px-4 py-3">
+        <p className="text-sm font-medium text-gray-300 mb-2">Настройки</p>
         <div className="flex flex-wrap gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={groupBySection} onChange={e => setGroupBySection(e.target.checked)} />
+          <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="checkbox" checked={groupBySection} onChange={e => setGroupBySection(e.target.checked)}
+              className="rounded border-[#555] bg-[#2E3033] text-blue-500" />
             Группировка по разделам
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={includeSourceCode} onChange={e => setIncludeSourceCode(e.target.checked)} />
+          <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="checkbox" checked={includeSourceCode} onChange={e => setIncludeSourceCode(e.target.checked)}
+              className="rounded border-[#555] bg-[#2E3033] text-blue-500" />
             Код расценки в примечании
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={mergeIdenticalWorks} onChange={e => setMergeIdenticalWorks(e.target.checked)} />
+          <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="checkbox" checked={mergeIdenticalWorks} onChange={e => setMergeIdenticalWorks(e.target.checked)}
+              className="rounded border-[#555] bg-[#2E3033] text-blue-500" />
             Объединять одинаковые работы
           </label>
         </div>
       </div>
 
-      {/* Preview table */}
-      {vorData && (
-        <VORTable rows={vorData.rows} totalWorks={vorData.totalWorks} />
-      )}
+      {vorData && <VORTable rows={vorData.rows} totalWorks={vorData.totalWorks} />}
     </div>
   );
 }

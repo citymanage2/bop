@@ -1,0 +1,43 @@
+{
+  "name": "smeta-parser",
+  "version": "1.0.0",
+  "description": "Сервис формирования ВОР и списка материалов из смет ГрандСмета",
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc && cp -r src/decomposer/data dist/decomposer/data",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "client:dev": "cd client && npm run dev",
+    "client:install": "cd client && npm install",
+    "client:build": "cd client && npm install --include=dev && npm run build",
+    "render:build": "npm install --include=dev && npm run client:build && npm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "docx": "^9.1.1",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.1",
+    "fast-xml-parser": "^4.5.1",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^1.1.1",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^22.19.15",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

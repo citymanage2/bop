@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Estimate>
+  <Header>
+    <Name>Локальный сметный расчёт №2</Name>
+    <Number>ЛСР-002</Number>
+    <Object>Капитальный ремонт офисного здания</Object>
+    <Customer>ООО "Альфа"</Customer>
+    <Contractor>ООО "СтройМонтаж"</Contractor>
+    <BaseDate>01.01.2024</BaseDate>
+    <CurrentDate>01.06.2024</CurrentDate>
+  </Header>
+  <Sections>
+    <Section number="1" name="Раздел 1. Демонтажные работы">
+      <Items>
+        <Item position="1">
+          <Code>ТЕР46-03-001-01</Code>
+          <Name>Разборка покрытий полов из линолеума</Name>
+          <Unit>100 м2</Unit>
+          <Quantity>4.5</Quantity>
+          <DirectCostUnit>3200</DirectCostUnit>
+          <DirectCostTotal>14400</DirectCostTotal>
+          <LaborCostUnit>2800</LaborCostUnit>
+          <LaborCostTotal>12600</LaborCostTotal>
+          <MachineCostUnit>400</MachineCostUnit>
+          <MachineCostTotal>1800</MachineCostTotal>
+          <MaterialCostUnit>0</MaterialCostUnit>
+          <MaterialCostTotal>0</MaterialCostTotal>
+          <LaborHoursUnit>45</LaborHoursUnit>
+          <LaborHoursTotal>202.5</LaborHoursTotal>
+        </Item>
+        <Item position="2">
+          <Code>ТЕР46-02-010-01</Code>
+          <Name>Снятие старой штукатурки со стен</Name>
+          <Unit>100 м2</Unit>
+          <Quantity>6.2</Quantity>
+          <DirectCostUnit>5100</DirectCostUnit>
+          <DirectCostTotal>31620</DirectCostTotal>
+          <LaborCostUnit>4500</LaborCostUnit>
+          <LaborCostTotal>27900</LaborCostTotal>
+          <MachineCostUnit>600</MachineCostUnit>
+          <MachineCostTotal>3720</MachineCostTotal>
+          <MaterialCostUnit>0</MaterialCostUnit>
+          <MaterialCostTotal>0</MaterialCostTotal>
+          <LaborHoursUnit>68</LaborHoursUnit>
+          <LaborHoursTotal>421.6</LaborHoursTotal>
+        </Item>
+      </Items>
+    </Section>
+    <Section number="2" name="Раздел 2. Отделочные работы">
+      <Items>
+        <Item position="3">
+          <Code>ТЕР15-04-005-01</Code>
+          <Name>Штукатурка стен цементно-известковым раствором простая</Name>
+          <Unit>100 м2</Unit>
+          <Quantity>6.2</Quantity>
+          <DirectCostUnit>45200</DirectCostUnit>
+          <DirectCostTotal>280240</DirectCostTotal>
+          <LaborCostUnit>12100</LaborCostUnit>
+          <LaborCostTotal>75020</LaborCostTotal>
+          <MachineCostUnit>3400</MachineCostUnit>
+          <MachineCostTotal>21080</MachineCostTotal>
+          <MaterialCostUnit>29700</MaterialCostUnit>
+          <MaterialCostTotal>184140</MaterialCostTotal>
+          <LaborHoursUnit>120.5</LaborHoursUnit>
+          <LaborHoursTotal>747.1</LaborHoursTotal>
+          <Resources>
+            <Resource type="material">
+              <Code>402-0015</Code>
+              <Name>Раствор цементно-известковый</Name>
+              <Unit>м3</Unit>
+              <QuantityPerUnit>2.14</QuantityPerUnit>
+              <Price>2800</Price>
+            </Resource>
+          </Resources>
+          <Works>
+            <Work>
+              <Name>Подготовка поверхности стен под штукатурку</Name>
+              <Unit>100 м2</Unit>
+              <QuantityRatio>1.0</QuantityRatio>
+            </Work>
+            <Work>
+              <Name>Нанесение штукатурного раствора</Name>
+              <Unit>100 м2</Unit>
+              <QuantityRatio>1.0</QuantityRatio>
+            </Work>
+            <Work>
+              <Name>Затирка штукатурки</Name>
+              <Unit>100 м2</Unit>
+              <QuantityRatio>1.0</QuantityRatio>
+            </Work>
+          </Works>
+        </Item>
+        <Item position="4">
+          <Code>ТЕР15-06-001-01</Code>
+          <Name>Окраска водоэмульсионными составами стен</Name>
+          <Unit>100 м2</Unit>
+          <Quantity>6.2</Quantity>
+          <DirectCostUnit>12300</DirectCostUnit>
+          <DirectCostTotal>76260</DirectCostTotal>
+          <LaborCostUnit>5600</LaborCostUnit>
+          <LaborCostTotal>34720</LaborCostTotal>
+          <MachineCostUnit>800</MachineCostUnit>
+          <MachineCostTotal>4960</MachineCostTotal>
+          <MaterialCostUnit>5900</MaterialCostUnit>
+          <MaterialCostTotal>36580</MaterialCostTotal>
+          <LaborHoursUnit>85</LaborHoursUnit>
+          <LaborHoursTotal>527</LaborHoursTotal>
+          <Resources>
+            <Resource type="material">
+              <Code>101-1502</Code>
+              <Name>Краска водоэмульсионная</Name>
+              <Unit>кг</Unit>
+              <QuantityPerUnit>4.5</QuantityPerUnit>
+              <Price>180</Price>
+            </Resource>
+          </Resources>
+        </Item>
+      </Items>
+    </Section>
+  </Sections>
+</Estimate>

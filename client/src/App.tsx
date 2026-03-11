@@ -4,12 +4,14 @@ import EstimateView from './pages/EstimateView';
 import DecompositionPage from './pages/DecompositionPage';
 import VORPreview from './pages/VORPreview';
 import MaterialsPreview from './pages/MaterialsPreview';
+import ScanPage from './pages/ScanPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiePolicy from './pages/CookiePolicy';
 
 function App() {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isScan = location.pathname === '/scan';
 
   return (
     <div className="min-h-screen">
@@ -27,6 +29,9 @@ function App() {
             <Link to="/" className={`px-3 py-1 rounded ${isHome ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'}`}>
               Загрузка
             </Link>
+            <Link to="/scan" className={`px-3 py-1 rounded ${isScan ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'}`}>
+              Скан в Excel
+            </Link>
           </nav>
         </div>
       </header>
@@ -39,6 +44,7 @@ function App() {
           <Route path="/estimate/:id/decompose" element={<DecompositionPage />} />
           <Route path="/estimate/:id/vor" element={<VORPreview />} />
           <Route path="/estimate/:id/materials" element={<MaterialsPreview />} />
+          <Route path="/scan" element={<ScanPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/cookies" element={<CookiePolicy />} />
         </Routes>

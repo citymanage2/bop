@@ -12,6 +12,7 @@ import estimatesRouter from './api/routes/estimates';
 import vorRouter from './api/routes/vor';
 import materialsRouter from './api/routes/materials';
 import downloadsRouter from './api/routes/downloads';
+import scanRouter from './api/routes/scan';
 
 console.log('Starting server...');
 console.log(`  PORT=${config.port}`);
@@ -58,6 +59,7 @@ app.use('/api/estimates', estimatesRouter);
 app.use('/api/estimates', vorRouter);
 app.use('/api/estimates', materialsRouter);
 app.use('/api/downloads', downloadsRouter);
+app.use('/api/scan', scanRouter);
 
 // Здоровье сервера
 app.get('/api/health', (_req, res) => {

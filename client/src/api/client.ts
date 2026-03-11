@@ -140,3 +140,62 @@ export async function updateItemWorks(estimateId: string, itemId: string, works:
     body: JSON.stringify({ works }),
   });
 }
+
+// ============================================================
+// Scan recognition API
+// ============================================================
+
+export interface ScanRecognizeResult {
+  downloadId: string;
+  downloadUrl: string;
+  fileName: string;
+  summary: {
+    estimateName: string;
+    estimateNumber: string;
+    estimateType: string;
+    normBase: string;
+    totalPositions: number;
+    totalSections: number;
+    totalAmount: string;
+    totalWithVat: string;
+    confidence: 'high' | 'medium' | 'low';
+    unreadableRows: number;
+  };
+  warnings: string[];
+}
+
+export async function recognizeScan(file: File): Promise<ScanRecognizeResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/scan/recognize-single`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
+export async function recognizeScanMultiple(files: File[]): Promise<ScanRecognizeResult> {
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('files', file);
+  }
+
+  const res = await fetch(`${API_BASE}/scan/recognize`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
